@@ -44,3 +44,5 @@ where script_arguments are passed as is to the standard submission script on the
                     t-wiki.lngs.infn.it/doku.php?id=xenon:xenonnt:dsg:comp
                     uting:environment_trackingDefault container: "latest"
 </pre>
+
+I highly recommend using dali and copying your ssh key to the login node using ssh-copy-id (linux).
