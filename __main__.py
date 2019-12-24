@@ -4,13 +4,20 @@ import getpass
 import webbrowser
 import os
 import time
+import threading
+import socket
+import select
+import sys
 
-SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
+SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
+SCRIPT_NAME = "start_jupyter_modified.py"
+SCRIPT_PATH = os.path.join(SCRIPT_DIR, SCRIPT_NAME)
 
 KNOWN_NODES = {
 "dali": "dali-login1.rcc.uchicago.edu",
 "midway": "midway2.rcc.uchicago.edu",
 }
+
 
 
 def line_buffered(f):
@@ -39,11 +46,18 @@ def do_2fa(ssh, username):
     transport = ssh.get_transport()
     transport.auth_interactive(username=username, handler=auth_handler)
 
+def upload_script(ssh):
+    ftp_client=ssh.open_sftp()
+    click.echo("Uploading job script...")
+    ftp_client.put(SCRIPT_PATH, SCRIPT_NAME)
+    ftp_client.close()
+
+
 @click.command(context_settings=dict(
     ignore_unknown_options=True,
 ))
 @click.option("--username", default=getpass.getuser(), help="UCC Chicago user name")
-@click.option("--password", prompt=True, hide_input=True, help="UCC Chicago user name")
+@click.option("--password", prompt=False, hide_input=True, help="UCC Chicago user name")
 @click.option("--server", default="dali", help="Login node, can be 'dali' or 'midway' or explicit address.")
 @click.argument('scipt_args', nargs=-1, type=click.UNPROCESSED)
 def main(username, password, server,scipt_args):
@@ -55,21 +69,24 @@ def main(username, password, server,scipt_args):
      All from the comfort of your own home.
      Any extra parameters are passed on to the standard submission script.
      """
-    cmd_to_execute = "python start_jupyter_modified.py {}".format(" ".join(scipt_args))
+    
     if server in KNOWN_NODES:
         server = KNOWN_NODES[server]
     ssh = paramiko.SSHClient()
     # k = paramiko.RSAKey.from_private_key_file(f"{home}/.ssh/id_rsa")
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     try:
-        ssh.connect(server, username=username, password=password, auth_timeout=60)
-    except paramiko.AuthenticationException:
-        do_2fa(ssh, username)
-    ftp_client=ssh.open_sftp()
-    click.echo("Uploading job script...")
-    ftp_client.put(os.path.join(SCRIPT_PATH, "start_jupyter_modified.py"), "start_jupyter_modified.py")
-    ftp_client.close()
-    
+        ssh.connect(server, username=username, auth_timeout=10)
+    except paramiko.AuthenticationException as e:
+        # password = getpass.getpass("Password: ")password=password,
+        try:
+            ssh.connect(server, username=username,  auth_timeout=60)
+        except paramiko.AuthenticationException:
+            do_2fa(ssh, username)
+        
+    upload_script(ssh)
+
+    cmd_to_execute = "python {} {}".format(SCRIPT_NAME, " ".join(scipt_args))
     ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(cmd_to_execute)
     ssh_stdin.close()
     lines = []
@@ -78,12 +95,16 @@ def main(username, password, server,scipt_args):
             click.echo("Done. adding ssh tunnel.")
             params = eval(line)
             os.system("ssh -fN -L {port}:{ip}:{port} {username}@{host}".format(**params, host=server))
-            click.echo("Browser should open automatically. If not, browse to: http://localhost:{port}/{token}".format(**params))
-            webbrowser.open("http://localhost:{port}/{token}".format(**params))
-            click.echo("Happy strax analysis!")
+            break
         else:
             click.echo(line)
+    
+    click.echo("Browser should open automatically. If not, browse to: http://localhost:{port}/?token={token}".format(**params))
+    click.echo("Happy strax analysis!")
+    webbrowser.open("http://localhost:{port}/?token={token}".format(**params))
     ssh.close()
+    sys.exit(0)
+    
 
 if __name__ == '__main__':
     main()

@@ -219,21 +219,11 @@ print("Parsing URL %s" % url, flush=True)
 ip, port = url.split('/')[2].split(':')
 if 'token' in url:
     token = url.split('?')[1].split('=')[1]
-    token = '?token=' + token
+    
 else:
     token = ''
 
 
 print("{{'port':'{port}', 'ip':'{ip}', 'username':'{username}', 'token':'{token}'}}".format(ip=ip, port=port, token=token, username=username), flush=True)
 time.sleep(1)
-# print("""
-# Success! If you have linux, execute the following command on your laptop:
 
-# ssh -fN -L {port}:{ip}:{port} {username}@dali-login1.rcc.uchicago.edu && sensible-browser http://localhost:{port}/{token}
-
-# If you have a mac, instead do:
-
-# ssh -fN -L {port}:{ip}:{port} {username}@dali-login1.rcc.uchicago.edu && open http://localhost:{port}/{token}
-
-# Happy strax analysis!
-# """.format(ip=ip, port=port, token=token, username=username))
