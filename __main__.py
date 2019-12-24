@@ -4,9 +4,6 @@ import getpass
 import webbrowser
 import os
 import time
-import threading
-import socket
-import select
 import sys
 
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))

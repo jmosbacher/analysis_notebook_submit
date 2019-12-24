@@ -15,7 +15,9 @@ Any extra parameters are passed on to the standard submission script.
 
 ### Usage
     ```
-    python analysis_noptebook [--username `USER`] [--server dali/midway] [script_arguments...]
+    git clone https://github.com/jmosbacher/analysis_notebook_submit.git
+    pip install click paramiko
+    python analysis_notebook_submit [--username `USER`] [--server dali/midway] [script_arguments...]
     ```
 where script_arguments are passed as is to the standard submission script on the login node:
 <pre>
