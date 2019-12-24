@@ -42,11 +42,19 @@ def do_2fa(ssh, username):
 @click.command(context_settings=dict(
     ignore_unknown_options=True,
 ))
-@click.option("--username", default=getpass.getuser())
-@click.option("--password", prompt=True, hide_input=True)
-@click.option("--server", default="dali")
+@click.option("--username", default=getpass.getuser(), help="UCC Chicago user name")
+@click.option("--password", prompt=True, hide_input=True, help="UCC Chicago user name")
+@click.option("--server", default="dali", help="Login node, can be 'dali' or 'midway' or explicit address.")
 @click.argument('scipt_args', nargs=-1, type=click.UNPROCESSED)
 def main(username, password, server,scipt_args):
+    """Performs the tedious tasks of
+     1) logging in to midway.
+     2) submitting a notebook script.
+     3) tunneling through to the machine running the job.
+     4) opening a browser.
+     All from the comfort of your own home.
+     Any extra parameters are passed on to the standard submission script.
+     """
     cmd_to_execute = "python start_jupyter_modified.py {}".format(" ".join(scipt_args))
     if server in KNOWN_NODES:
         server = KNOWN_NODES[server]
