@@ -54,7 +54,7 @@ def upload_script(ssh):
     ignore_unknown_options=True,
 ))
 @click.option("--username", default=getpass.getuser(), help="UCC Chicago user name")
-@click.option("--password", prompt=False, hide_input=True, help="UCC Chicago user name")
+@click.option("--password",default="", prompt=False, hide_input=True, help="UCC Chicago user name")
 @click.option("--server", default="dali", help="Login node, can be 'dali' or 'midway' or explicit address.")
 @click.argument('scipt_args', nargs=-1, type=click.UNPROCESSED)
 def main(username, password, server,scipt_args):
@@ -73,14 +73,9 @@ def main(username, password, server,scipt_args):
     # k = paramiko.RSAKey.from_private_key_file(f"{home}/.ssh/id_rsa")
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     try:
-        ssh.connect(server, username=username, auth_timeout=10)
-    except paramiko.AuthenticationException as e:
-        # password = getpass.getpass("Password: ")password=password,
-        try:
-            ssh.connect(server, username=username,  auth_timeout=60)
-        except paramiko.AuthenticationException:
-            do_2fa(ssh, username)
-        
+        ssh.connect(server, username=username, password=password,auth_timeout=60)
+    except paramiko.AuthenticationException:
+        do_2fa(ssh, username)
     upload_script(ssh)
 
     cmd_to_execute = "python {} {}".format(SCRIPT_NAME, " ".join(scipt_args))
