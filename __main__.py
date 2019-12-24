@@ -32,10 +32,10 @@ def auth_handler(title, instructions, prompt_list):
     if instructions:
         print(instructions.strip())
     for prompt, show_input in prompt_list:
-        if "password" in prompt.strip().lower():
-            answer = getpass.getpass(prompt.strip())
-        else:
+        if show_input:
             answer = input(prompt.strip())
+        else:
+            answer = getpass.getpass(prompt.strip())
         answers.append(answer)
     return answers
 
