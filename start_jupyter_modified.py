@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+from __future__ import print_function
 import argparse
 import tempfile
 import time
@@ -9,6 +9,7 @@ import shutil
 import random
 import string
 import os
+import sys
 import subprocess
 
 parser = argparse.ArgumentParser(
@@ -54,6 +55,7 @@ if args.copy_tutorials:
     dest = osp.expanduser('~/strax_tutorials')
     if osp.exists(dest):
         print("NOT copying tutorials, folder already exists")
+        sys.stdout.flush()
     else:
         shutil.copytree(
             '/dali/lgrandi/strax/straxen/notebooks/tutorials',
@@ -115,6 +117,7 @@ if args.env == 'nt_singularity':
 else:
     if args.conda_path == '<INFER>':
         print("Autoinferring conda path")
+        sys.stdout.flush()
         conda_path = subprocess.check_output(['which', 'conda']).strip()
         conda_path = conda_path.decode()
     else:
@@ -123,7 +126,7 @@ else:
     conda_dir = os.path.dirname(conda_path)
     conda_dir = os.path.abspath(os.path.join(conda_dir, os.pardir))
     print("Using conda from %s instead of singularity container." % conda_dir)
-
+    sys.stdout.flush()
     jupyter_job += _start_jupyter.format(
         conda_dir=conda_dir,
         env_name=args.env)
@@ -156,12 +159,13 @@ for line in q.decode().splitlines():
         break
         
 else:
-    print("Submitting a new jupyter job", flush=True)
-    
+    print("Submitting a new jupyter job")
+    sys.stdout.flush()
     import getpass
     username = getpass. getuser()
     if username == 'kmoraa':
         print("Hi Knut!")
+        sys.stdout.flush()
         job_fn = '/project2/lgrandi/xenonnt/development/.tmp_for_jupyter_job_launcher/knut_job'
         log_fn = '/project2/lgrandi/xenonnt/development/.tmp_for_jupyter_job_launcher/knut_log'
     else:
@@ -179,14 +183,18 @@ else:
             n_cpu=n_cpu,
             mem_per_cpu=int(args.ram/n_cpu)))
     make_executable(job_fn)
-    print("Sumbitting sbatch %s" % job_fn, flush=True)
+    print("Sumbitting sbatch %s" % job_fn)
+    sys.stdout.flush()
     result = subprocess.check_output(['sbatch', job_fn])
-    print("sbatch returned: %s" % result.decode(), flush=True)
+    print("sbatch returned: %s" % result.decode())
+    sys.stdout.flush()
     job_id = int(result.decode().split()[-1])
 
-    print("Starting to look for logfile %s..." % log_fn, flush=True)
+    print("Starting to look for logfile %s..." % log_fn)
+    sys.stdout.flush()
     while not osp.exists(log_fn):
-        print("Waiting for your job to start...", flush=True)
+        print("Waiting for your job to start...")
+        sys.stdout.flush()
         time.sleep(1)
 
     slept = 0
@@ -198,7 +206,9 @@ else:
                     url = line.split()[-1]
                     break
             else:
-                print("Waiting for jupyter server to start inside job...", flush=True)
+                print("Waiting for jupyter server to start inside job...")
+                sys.stdout.flush()
+                sys.stdout.flush()
                 time.sleep(2)
                 slept += 2
     if url is None:
@@ -211,11 +221,13 @@ else:
     
     with open(url_cache_fn, mode='w') as f:
         f.write(url)
-    print("Dumped URL %s to cache file" % url, flush=True)
+    print("Dumped URL %s to cache file" % url)
+    sys.stdout.flush()
     #os.remove(job_fn)
     #os.remove(log_fn)
 
-print("Parsing URL %s" % url, flush=True)
+print("Parsing URL %s" % url)
+sys.stdout.flush()
 ip, port = url.split('/')[2].split(':')
 if 'token' in url:
     token = url.split('?')[1].split('=')[1]
@@ -224,6 +236,7 @@ else:
     token = ''
 
 
-print("{{'port':'{port}', 'ip':'{ip}', 'username':'{username}', 'token':'{token}'}}".format(ip=ip, port=port, token=token, username=username), flush=True)
+print("{{'port':'{port}', 'ip':'{ip}', 'username':'{username}', 'token':'{token}'}}".format(ip=ip, port=port, token=token, username=username))
+sys.stdout.flush()
 time.sleep(1)
 
