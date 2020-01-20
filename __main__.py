@@ -82,6 +82,7 @@ def main(username, password, server,scipt_args):
     ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(cmd_to_execute)
     ssh_stdin.close()
     lines = []
+    params = None
     for line in line_buffered(ssh_stdout):
         if "{" in line:
             click.echo("Done. adding ssh tunnel.")
@@ -90,10 +91,12 @@ def main(username, password, server,scipt_args):
             break
         else:
             click.echo(line)
-    
-    click.echo("Browser should open automatically. If not, browse to: http://localhost:{port}/?token={token}".format(**params))
-    click.echo("Happy strax analysis!")
-    webbrowser.open("http://localhost:{port}/?token={token}".format(**params))
+    if params is None:
+        click.echo("Failed to start retrieve job details")
+    else:
+        click.echo("Browser should open automatically. If not, browse to: http://localhost:{port}/?token={token}".format(**params))
+        click.echo("Happy strax analysis!")
+        webbrowser.open("http://localhost:{port}/?token={token}".format(**params))
     ssh.close()
     sys.exit(0)
     
